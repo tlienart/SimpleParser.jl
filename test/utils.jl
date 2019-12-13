@@ -10,3 +10,19 @@
     @test next_char(b, lastindex(b)) == (char='\0', pos=0, eos=true)
     @test next_char(b, 2) == (char='Λ', pos=4, eos=false)
 end
+
+@testset "subs,str" begin
+    S = SimpleParser
+    s = "hello abc"
+    @test S.subs(s, 1) == "h"
+    @test S.subs(s, 1:2) == "he"
+    @test S.subs(s, 1, 5) == "hello"
+    @test S.subs(s) == s
+    @test S.subs(s) !== s
+
+    ss = S.subs(s)
+    @test ss isa SubString
+
+    @test S.str(ss) === s
+    @test S.str(s) === s
+end

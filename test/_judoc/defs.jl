@@ -80,43 +80,43 @@ gr_iscode5 = (p, s) -> gr_iscode(p, s, 5)
 # definition exists and then an escaped char otherwise.
 
 TOKS = Dict{Char,Vector{TokenPattern}}(
-    '<'  => [ TokenPattern(:O_COMMENT, "<!--") ],   # comment
+    '<'  => [ TokenPattern(:O_COMMENT, "<!--") ],   # P: comment
     '-'  => [ TokenPattern(:C_COMMENT, "-->") ],    # .
-    '~'  => [ TokenPattern(:ESCAPE, "~~~") ],       # escape
-    '('  => [ TokenPattern{1}(:O_BRACKET_1, ∅) ],   # bracket_1
+    '~'  => [ TokenPattern(:ESCAPE, "~~~") ],       # P: escape
+    '('  => [ TokenPattern{1}(:O_BRACKET_1, ∅) ],   # P: bracket_1
     ')'  => [ TokenPattern{1}(:C_BRACKET_1, ∅) ],   # .
-    '['  => [ TokenPattern{1}(:O_BRACKET_2, ∅) ],   # bracket_2
+    '['  => [ TokenPattern{1}(:O_BRACKET_2, ∅) ],   # P: bracket_2
     ']'  => [ TokenPattern{1}(:C_BRACKET_2, ∅) ],   # .
-    '{'  => [ TokenPattern{1}(:O_BRACKET_3, ∅) ],   # bracket_3
+    '{'  => [ TokenPattern{1}(:O_BRACKET_3, ∅) ],   # P: bracket_3
     '}'  => [ TokenPattern{1}(:C_BRACKET_3, ∅) ],   # .
-    '\n' => [ TokenPattern{1}(:LINE_RETURN, ∅) ],   # single
-    '\t' => [ TokenPattern{1}(:TAB_1,       ∅) ],   # single
+    '\n' => [ TokenPattern{1}(:LINE_RETURN, ∅) ],   # S
+    '\t' => [ TokenPattern{1}(:TAB_1,       ∅) ],   # S
     ' '  => [
-        TokenPattern(:TAB_4, "    "),               # single
-        TokenPattern(:TAB_2, "  "),                 # single
+        TokenPattern(:TAB_4, "    "),               # S
+        TokenPattern(:TAB_2, "  "),                 # S
         ],
     '\$' => [
-        TokenPattern(:MATH_B, "\$\$"),              # math_b
-        TokenPattern{1}(:MATH_A, ∅),                # math_a
+        TokenPattern(:MATH_B, "\$\$"),              # P: math_b
+        TokenPattern{1}(:MATH_A, ∅),                # P: math_a
         ],
     '\\' => [
-        TokenPattern{1}(:BACKSLASH, ∅, SPACE_CHARS),# single
-        TokenPattern(:BACKSLASH_2, "\\\\"),         # single
-        TokenPattern{2}(:ESC_CHAR,  r_esc_char),    # single
-        TokenPattern(:O_MATH_C,     "\\["),         # math_c
+        TokenPattern{1}(:BACKSLASH, ∅, SPACE_CHARS),# S
+        TokenPattern(:BACKSLASH_2, "\\\\"),         # S
+        TokenPattern{2}(:ESC_CHAR,  r_esc_char),    # S
+        TokenPattern(:O_MATH_C,     "\\["),         # P: math_c
         TokenPattern(:C_MATH_C,     "\\]"),         # .
         TokenPattern(:NEWCOMMAND,   "\\newcommand", ['{']),
-        TokenPattern(:O_MATH_ALIGN, "\\begin{align}"),    # math_align
+        TokenPattern(:O_MATH_ALIGN, "\\begin{align}"),    # P: math_align
         TokenPattern(:C_MATH_ALIGN, "\\end{align}"),      # .
-        TokenPattern(:O_MATH_EQ,    "\\begin{equation}"), # math_eq
+        TokenPattern(:O_MATH_EQ,    "\\begin{equation}"), # P: math_eq
         TokenPattern(:C_MATH_EQ,    "\\end{equation}"),   # .
-        TokenPattern(:O_MATH_EQA,   "\\begin{eqnarray}"), # math_eqa
+        TokenPattern(:O_MATH_EQA,   "\\begin{eqnarray}"), # P: math_eqa
         TokenPattern(:C_MATH_EQA,   "\\end{eqnarray}"),   # .
         TokenPattern{0}(:COMMAND, (p, s) -> gr_isletter(p, s, extras=['_']))
         ],
     '@'  => [
         TokenPattern(:MD_DEF, "@def", [' ']),
-        TokenPattern(:C_DIV,    "@@", SPACE_CHARS),
+        TokenPattern(:C_DIV,    "@@", SPACE_CHARS),       # P: div
         TokenPattern{0}(:O_DIV, gr_isdiv)
         ],
     '#'  => [
@@ -175,6 +175,8 @@ PAIRS = [
     BlockPattern(:BRACKET_1, :O_BRACKET_1, :C_BRACKET_1, true,  false),
     BlockPattern(:BRACKET_2, :O_BRACKET_2, :C_BRACKET_2, true,  false),
     BlockPattern(:BRACKET_3, :O_BRACKET_3, :C_BRACKET_3, true,  false),
+    # div
+    BlockPattern(:DIV,       :O_DIV,       :C_DIV,       true,  false),
 ] # end of vector
 
 blkp! = t -> find_pairblocks!(t, PAIRS)

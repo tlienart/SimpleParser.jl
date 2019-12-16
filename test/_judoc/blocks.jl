@@ -110,12 +110,30 @@ end
     b = raw"A````` ``` (``B`C`````" |> tb
     @test b[2].name == :CODE_5
     @test content(b[2]) == " ``` (``B`C"
+    b = raw"A```b`` C```" |> tb
+    @test b[2].name == :CODE_3L
+    @test content(b[2]) == "`` C"
+    @test b[2].otok.ss == "```b"
+    b = raw"A`````b`` C`````" |> tb
+    @test b[2].name == :CODE_5L
+    @test content(b[2]) == "`` C"
+    @test b[2].otok.ss == "`````b"
 end
-
 
 @testset "block:jd:err" begin
     t = "<!--" |> tok
     mess = "Context:\n\t<!-- (near line 1)\n	^---\n"
     @test SimpleParser.context(t[1]) == mess
     @test_throws SimpleParser.BlockError("Found opening token O_COMMENT but not a matching closing token (expected one of [:C_COMMENT])", mess) "<!--" |> tb
+end
+
+@testset "block:jd:div" begin
+    b = "@@b c@@" |> tb
+    @test b[2].name == :DIV
+    @test content(b[2]) == " c"
+    b = "@@b @@c d@@ @@" |> tb
+    @test b[2].name == :DIV
+    @test b[3].name == :DIV
+    @test content(b[2]) == " @@c d@@ "
+    @test content(b[3]) == " d"
 end

@@ -49,17 +49,9 @@ function SuperBlock(n::Symbol, b1::Block, b2::Block)::SuperBlock
     s = str(b1)
     SuperBlock(n, subs(s, from(b1), to(b2)), [b1, b2])
 end
-function SuperBlock(n::Symbol, b1::Block, b2::SuperBlock)::SuperBlock
-    s = str(b1)
-    SuperBlock(n, subs(s, from(b1), to(b2)), [b1, b2.sub_blocks...])
-end
 function SuperBlock(n::Symbol, b1::SuperBlock, b2::Block)::SuperBlock
     s = str(b1)
     SuperBlock(n, subs(s, from(b1), to(b2)), [b1.sub_blocks..., b2])
-end
-function SuperBlock(n::Symbol, b1::SuperBlock, b2::SuperBlock)::SuperBlock
-    s = str(b1)
-    SuperBlock(n, subs(s, from(b1), to(b2)), [b1.sub_blocks..., b2.sub_blocks...])
 end
 
 Base.getindex(b::SuperBlock, i::Int) = b.sub_blocks[i]

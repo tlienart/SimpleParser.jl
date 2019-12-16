@@ -119,12 +119,7 @@ function find_superblocks(blocks::Vector{Block},
         cand = combine(cur, next, sbp)
         if isnothing(cand)
             push!(sb, cur)
-            if cur isa SuperBlock && cur.sub_blocks[end].name == :LINE_RETURN
-                cur = cur.sub_blocks[end]
-                continue # no update for next
-            else
-                cur = blocks[nextidx]
-            end
+            cur = blocks[nextidx]
         else
             cur = cand
         end

@@ -240,13 +240,16 @@ end
     A
         B
         C
+        BB
+        CC
     D
       E
       F
+      FF
     G
     """ |> ptbss
     @test s[1].name == :INDENT_4
     @test s[2].name == :INDENT_2
-    @test content(s[1]) == ["B", "C"]
-    @test content(s[2]) == ["E", "F"]
+    @test content(s[1]) == ["B", "C", "BB", "CC"]
+    @test content(s[2]) == ["E", "F", "FF"]
 end

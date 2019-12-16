@@ -4,12 +4,12 @@
 :-----------: | :------:
 [![Build Status](https://travis-ci.org/tlienart/SimpleParser.jl.svg?branch=master)](https://travis-ci.org/tlienart/SimpleParser.jl) | [![codecov.io](http://codecov.io/github/tlienart/SimpleParser.jl/coverage.svg?branch=master)](http://codecov.io/github/tlienart/SimpleParser?branch=master)
 
-This parser is a clean rewrite of [JuDoc](https://github.com/tlienart/JuDoc.jl)'s parser and will eventually be used by JuDoc but could (in principle) also be used to build parsers for other simple markup languages like Common Mark.
+This parser is a clean rewrite of [JuDoc](https://github.com/tlienart/JuDoc.jl)'s parser and will eventually replace it but could (in principle) also be used to build parsers for other simple markup languages like Common Mark.
 In fact JuDoc currently relies on Julia's Markdown parser (in stdlib) which does not support Common Mark and so this could be worthwhile.
 
 ## Gist
 
-Simple Parser is for people who don't want to bother themselves with theory and just want to assume that their parser is doing something similar to what a human would do when reading something like Markdown.
+Simple Parser is for people who don't want to bother themselves with grammar etc and just want to assume that their parser is doing something similar to what a human would do when reading something like Markdown and does it with some efficiency.
 
 The steps are:
 

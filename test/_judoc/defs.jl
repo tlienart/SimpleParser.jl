@@ -133,12 +133,12 @@ TOKS = Dict{Char,Vector{TokenPattern}}(
         TokenPattern(:C_MATH_I, "_\$<_")
         ],
     '`'  => [
-        TokenPattern(:CODE_1, "`",  Char[], ['`']),
-        TokenPattern(:CODE_2, "``", Char[], ['`']),
-        TokenPattern(:CODE_3, "```",   SPACE_CHARS),
-        TokenPattern(:CODE_5, "`````", SPACE_CHARS),
-        TokenPattern{0}(:O_CODE_3, gr_iscode3),
-        TokenPattern{0}(:O_CODE_5, gr_iscode5)
+        TokenPattern(:CODE_1, "`",  Char[], ['`']),       # code_1
+        TokenPattern(:CODE_2, "``", Char[], ['`']),       # code_2
+        TokenPattern(:CODE_3, "```",   SPACE_CHARS),      # code_3
+        TokenPattern(:CODE_5, "`````", SPACE_CHARS),      # code_5
+        TokenPattern{0}(:O_CODE_3, gr_iscode3),           # code_3l
+        TokenPattern{0}(:O_CODE_5, gr_iscode5)            # code_5l
         ],
 ) # end of dict
 
@@ -157,6 +157,13 @@ PAIRS = [
     # PAIR        name        o tok         c tok        bal?   deact?
     BlockPattern(:COMMENT,   :O_COMMENT,   :C_COMMENT,   false, true),
     BlockPattern(:ESCAPE,    :ESCAPE,      :ESCAPE,      false, true),
+    # code
+    BlockPattern(:CODE_5L,   :O_CODE_5,    :CODE_5,      false, true),
+    BlockPattern(:CODE_3L,   :O_CODE_3,    :CODE_3,      false, true),
+    BlockPattern(:CODE_5,    :CODE_5,      :CODE_5,      false, true),
+    BlockPattern(:CODE_3,    :CODE_3,      :CODE_3,      false, true),
+    BlockPattern(:CODE_2,    :CODE_2,      :CODE_2,      false, true),
+    BlockPattern(:CODE_1,    :CODE_1,      :CODE_1,      false, true),
     # maths
     BlockPattern(:MATH_A,    :MATH_A,      :MATH_A,      false, true),
     BlockPattern(:MATH_B,    :MATH_B,      :MATH_B,      false, true),

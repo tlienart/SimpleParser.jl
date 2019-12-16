@@ -96,3 +96,26 @@ end
     @test b[2].name == :MATH_EQA
     @test content(b[2]) == "B"
 end
+
+@testset "block:jd:code" begin
+    b = raw"A`(B`C" |> tb
+    @test b[2].name == :CODE_1
+    @test content(b[2]) == "(B"
+    b = raw"A``(`B``C" |> tb
+    @test b[2].name == :CODE_2
+    @test content(b[2]) == "(`B"
+    b = raw"A``` (``B`C```" |> tb
+    @test b[2].name == :CODE_3
+    @test content(b[2]) == " (``B`C"
+    b = raw"A````` ``` (``B`C`````" |> tb
+    @test b[2].name == :CODE_5
+    @test content(b[2]) == " ``` (``B`C"
+end
+
+
+@testset "block:jd:err" begin
+    t = "<!--" |> tok
+    mess = "Context:\n\t<!-- (near line 1)\n	^---\n"
+    @test SimpleParser.context(t[1]) == mess
+    @test_throws SimpleParser.BlockError("Found opening token O_COMMENT but not a matching closing token (expected one of [:C_COMMENT])", mess) "<!--" |> tb
+end

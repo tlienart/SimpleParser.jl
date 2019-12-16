@@ -181,6 +181,19 @@ end
     @test content(c[5]) == "hi"
     @test content(c[6]) == " h = 7"
     @test content(c[7]) == " g = \"blah\""
+
+    b = """
+    # AA
+    then some
+      b
+      c
+    ## BB
+    etc
+    """ |> tbl
+    @test b[3].name == :L_H1
+    @test b[4].name == :L_INDENT_2
+    @test b[5].name == :L_INDENT_2
+    @test b[6].name == :L_H2
 end
 
 @testset "sblock:jd:mdd" begin

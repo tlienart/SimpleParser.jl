@@ -81,64 +81,64 @@ gr_iscode5 = (p, s) -> gr_iscode(p, s, 5)
 
 TOKS = Dict{Char,Vector{TokenPattern}}(
     # Other entries
-    '<'  => [ TokenPattern(:O_COMMENT, "<!--") ],   # P: comment
+    '<'  => [ TokenPattern(:O_COMMENT, "<!--") ],   # P: comment        ✓
     '-'  => [ TokenPattern(:C_COMMENT, "-->") ],    # .
-    '~'  => [ TokenPattern(:ESCAPE, "~~~") ],       # P: escape
-    '('  => [ TokenPattern{1}(:O_BRACKET_1, ∅) ],   # P: bracket_1
+    '~'  => [ TokenPattern(:ESCAPE, "~~~") ],       # P: escape         ✓
+    '('  => [ TokenPattern{1}(:O_BRACKET_1, ∅) ],   # P: bracket_1      ✓
     ')'  => [ TokenPattern{1}(:C_BRACKET_1, ∅) ],   # .
-    '['  => [ TokenPattern{1}(:O_BRACKET_2, ∅) ],   # P: bracket_2
+    '['  => [ TokenPattern{1}(:O_BRACKET_2, ∅) ],   # P: bracket_2      ✓
     ']'  => [ TokenPattern{1}(:C_BRACKET_2, ∅) ],   # .
-    '{'  => [ TokenPattern{1}(:O_BRACKET_3, ∅) ],   # P: bracket_3
+    '{'  => [ TokenPattern{1}(:O_BRACKET_3, ∅) ],   # P: bracket_3      ✓
     '}'  => [ TokenPattern{1}(:C_BRACKET_3, ∅) ],   # .
-    '\t' => [ TokenPattern{1}(:TAB_1,       ∅) ],   # S
+    '\t' => [ TokenPattern{1}(:TAB_1,       ∅) ],   # S                 ✓
     ' '  => [
-        TokenPattern(:TAB_4, "    "),               # S
-        TokenPattern(:TAB_2, "  "),                 # S
+        TokenPattern(:TAB_4, "    "),               # S                 ✓
+        TokenPattern(:TAB_2, "  "),                 # S                 ✓
         ],
     '\$' => [
-        TokenPattern(:MATH_B, "\$\$"),              # P: math_b
-        TokenPattern{1}(:MATH_A, ∅),                # P: math_a
+        TokenPattern(:MATH_B, "\$\$"),              # P: math_b         ✓
+        TokenPattern{1}(:MATH_A, ∅),                # P: math_a         ✓
         ],
     '\\' => [
-        TokenPattern{1}(:BACKSLASH, ∅, SPACE_CHARS),# S
-        TokenPattern(:BACKSLASH_2, "\\\\"),         # S
-        TokenPattern{2}(:ESC_CHAR,  r_esc_char),    # S
-        TokenPattern(:O_MATH_C,     "\\["),         # P: math_c
+        TokenPattern{1}(:BACKSLASH, ∅, SPACE_CHARS),# S                 ✓
+        TokenPattern(:BACKSLASH_2, "\\\\"),         # S                 ✓
+        TokenPattern{2}(:ESC_CHAR,  r_esc_char),    # S                 ✓
+        TokenPattern(:O_MATH_C,     "\\["),         # P: math_c         ✓
         TokenPattern(:C_MATH_C,     "\\]"),         # .
         TokenPattern(:NEWCOMMAND,   "\\newcommand", ['{']),
-        TokenPattern(:O_MATH_ALIGN, "\\begin{align}"),    # P: math_align
+        TokenPattern(:O_MATH_ALIGN, "\\begin{align}"),    # P: math_align✓
         TokenPattern(:C_MATH_ALIGN, "\\end{align}"),      # .
-        TokenPattern(:O_MATH_EQ,    "\\begin{equation}"), # P: math_eq
+        TokenPattern(:O_MATH_EQ,    "\\begin{equation}"), # P: math_eq  ✓
         TokenPattern(:C_MATH_EQ,    "\\end{equation}"),   # .
-        TokenPattern(:O_MATH_EQA,   "\\begin{eqnarray}"), # P: math_eqa
+        TokenPattern(:O_MATH_EQA,   "\\begin{eqnarray}"), # P: math_eqa ✓
         TokenPattern(:C_MATH_EQA,   "\\end{eqnarray}"),   # .
         TokenPattern{0}(:COMMAND, (p, s) -> gr_isletter(p, s, extras=['_']))
         ],
     '@'  => [
-        TokenPattern(:DEF, "@def", [' ']),          # S ~ SB
-        TokenPattern(:C_DIV,    "@@", SPACE_CHARS), # P: div
+        TokenPattern(:DEF, "@def", [' ']),          # S ~ SB            ✓
+        TokenPattern(:C_DIV,    "@@", SPACE_CHARS), # P: div            ✓
         TokenPattern{0}(:O_DIV, gr_isdiv)           # .
         ],
     '#'  => [
-        TokenPattern(:H1, "#",      [' ']),         # S ~ SB
-        TokenPattern(:H2, "##",     [' ']),         # S ~ SB
-        TokenPattern(:H3, "###",    [' ']),         # S ~ SB
-        TokenPattern(:H4, "####",   [' ']),         # S ~ SB
-        TokenPattern(:H5, "#####",  [' ']),         # S ~ SB
-        TokenPattern(:H6, "######", [' ']),         # S ~ SB
+        TokenPattern(:H1, "#",      [' ']),         # S ~ SB            ✓
+        TokenPattern(:H2, "##",     [' ']),         # S ~ SB            ✓
+        TokenPattern(:H3, "###",    [' ']),         # S ~ SB            ✓
+        TokenPattern(:H4, "####",   [' ']),         # S ~ SB            ✓
+        TokenPattern(:H5, "#####",  [' ']),         # S ~ SB            ✓
+        TokenPattern(:H6, "######", [' ']),         # S ~ SB            ✓
         ],
-    '&'  => [ TokenPattern{0}(:HTML_ENTITY, gr_isentity) ], # S
+    '&'  => [ TokenPattern{0}(:HTML_ENTITY, gr_isentity) ], # S         ✓
     '_'  => [
-        TokenPattern(:O_MATH_I, "_\$>_"),           # P: math_i
+        TokenPattern(:O_MATH_I, "_\$>_"),           # P: math_i         ✓
         TokenPattern(:C_MATH_I, "_\$<_")            # .
         ],
     '`'  => [
-        TokenPattern(:CODE_1, "`",  Char[], ['`']), # P: code_1
-        TokenPattern(:CODE_2, "``", Char[], ['`']), # P: code_2
-        TokenPattern(:CODE_3, "```",   SPACE_CHARS),# P: code_3
-        TokenPattern(:CODE_5, "`````", SPACE_CHARS),# P: code_5
-        TokenPattern{0}(:O_CODE_3, gr_iscode3),     # P: code_3l
-        TokenPattern{0}(:O_CODE_5, gr_iscode5)      # P: code_5l
+        TokenPattern(:CODE_1, "`",  Char[], ['`']), # P: code_1         ✓
+        TokenPattern(:CODE_2, "``", Char[], ['`']), # P: code_2         ✓
+        TokenPattern(:CODE_3, "```",   SPACE_CHARS),# P: code_3         ✓
+        TokenPattern(:CODE_5, "`````", SPACE_CHARS),# P: code_5         ✓
+        TokenPattern{0}(:O_CODE_3, gr_iscode3),     # P: code_3l        ✓
+        TokenPattern{0}(:O_CODE_5, gr_iscode5)      # P: code_5l        ✓
         ],
 ) # end of dict
 
@@ -192,7 +192,13 @@ LINES = Dict{Symbol,Symbol}(
     :TAB_1 => :L_INDENT_1,
     :TAB_2 => :L_INDENT_2,
     :TAB_4 => :L_INDENT_4,
-    :DEF   => :L_MD_DEF
+    :DEF   => :L_MD_DEF,
+    :H1    => :L_H1,
+    :H2    => :L_H2,
+    :H3    => :L_H3,
+    :H4    => :L_H4,
+    :H5    => :L_H5,
+    :H6    => :L_H6,
 )
 
 blkl! = b -> find_lineblocks!(b, LINES)

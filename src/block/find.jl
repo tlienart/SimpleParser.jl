@@ -72,12 +72,42 @@ function find_pairblocks!(tokens::Vector{Token}, bp::Vector{BlockPattern}
     return blocks
 end
 
+"""
+TODOODODODODODO
+Simple pattern that start at a trigger block directly after a `:SOS` or
+`:LINE_RETURN` block and ends at the next `:LINE_RETURN` or `:EOS`.
+For instance indented lines.
+"""
+function find_lineblocks!(blocks::Vector{Block}, lbp::Dict{Symbol,Symbol}
+                          )::Vector{Block}
+    nblocks = length(blocks)
+    remove  = Vector{Int}()
+    lblocks = Vector{Block}()
+    curidx  = 0
+    while curidx < nblocks # last block is EOS
+        curidx += 1
+        cur = blocks[curidx]
+        cur.name == :SOS || cur.name == :LINE_RETURN || continue
+        # check if the next block is a trigger
+        next = blocks[curidx + 1]
+        next.name in keys(lbp) || continue
+        # it is a trigger, look for next of EOS or LINE_RETURN
+        # it will always be found (EOS), so never nothing
+        tail = findfirst(j -> blocks[j].name == :LINE_RETURN ||
+                              blocks[j].name == :EOS,
+                         curidx+2:nblocks) + curidx + 1
+        push!(lblocks, Block(lbp[next.name], next.otok, blocks[tail].otok))
+        append!(remove, [curidx, curidx+1, tail])
+    end
+    deleteat!(blocks, unique(remove))
+    return vcat(blocks, lblocks)
+end
 
 # NOTE: needs to be called until there is no more as could
 # aggregate super blocks
 #
 # -- also need use <= for from bc e.g. START could overlap
-function find_superblocks(blocks::Vector{<:AbstractBlock},
+function find_superblocks(blocks::Vector{Block},
                           sbp::Vector{SuperBlockPattern}
                           )::Vector{Union{Block,SuperBlock}}
     sb = Vector{Union{Block,SuperBlock}}()
@@ -101,7 +131,5 @@ function find_superblocks(blocks::Vector{<:AbstractBlock},
         nextidx += 1
     end
     push!(sb, cur)
-    # second pass to aggregate super blocks
-    eltype(blocks) == Block && return find_superblocks(sb, sbp)
     return sb
 end

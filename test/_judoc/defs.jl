@@ -188,41 +188,43 @@ blk = t -> (a = blk1!(t); vcat(a, blkp!(t)))
 
 tb = blk ∘ tok
 
+LINES = Dict{Symbol,Symbol}(
+    :TAB_1 => :L_INDENT_1,
+    :TAB_2 => :L_INDENT_2,
+    :TAB_4 => :L_INDENT_4,
+    :DEF   => :L_MD_DEF
+)
+
+blkl! = b -> find_lineblocks!(b, LINES)
+
+tbl = blkl! ∘ tb
+
 SUPER = [
     # ----------------------------------------------------------------
-    # start of indented line
-    SuperBlockPattern(:O_INDENT_1, :SOS,         :TAB_1),
-    SuperBlockPattern(:O_INDENT_1, :LINE_RETURN, :TAB_1),
-    SuperBlockPattern(:O_INDENT_2, :SOS,         :TAB_2),
-    SuperBlockPattern(:O_INDENT_2, :LINE_RETURN, :TAB_2),
-    SuperBlockPattern(:O_INDENT_4, :SOS,         :TAB_4),
-    SuperBlockPattern(:O_INDENT_4, :LINE_RETURN, :TAB_4),
-    # indented line single
-    SuperBlockPattern(:INDENT_1, :O_INDENT_1, :LINE_RETURN, false),
-    SuperBlockPattern(:INDENT_1, :O_INDENT_1, :EOS,         false),
-    SuperBlockPattern(:INDENT_2, :O_INDENT_2, :LINE_RETURN, false),
-    SuperBlockPattern(:INDENT_2, :O_INDENT_2, :EOS,         false),
-    SuperBlockPattern(:INDENT_4, :O_INDENT_4, :LINE_RETURN, false),
-    SuperBlockPattern(:INDENT_4, :O_INDENT_4, :EOS,         false),
-    # block of indented lines
-    SuperBlockPattern(:INDENT_1, :INDENT_1, :INDENT_1),
-    SuperBlockPattern(:INDENT_2, :INDENT_2, :INDENT_2),
-    SuperBlockPattern(:INDENT_4, :INDENT_4, :INDENT_4),
+    # md defs: starts with :L_MD_DEF then any number of indented lines
+    # (not necessarily matching indentations)
+    SuperBlockPattern(:S_MD_DEF, :L_MD_DEF, :L_INDENT_1),
+    SuperBlockPattern(:S_MD_DEF, :L_MD_DEF, :L_INDENT_2),
+    SuperBlockPattern(:S_MD_DEF, :L_MD_DEF, :L_INDENT_4),
+    SuperBlockPattern(:S_MD_DEF, :MD_DEF,   :L_INDENT_1),
+    SuperBlockPattern(:S_MD_DEF, :MD_DEF,   :L_INDENT_2),
+    SuperBlockPattern(:S_MD_DEF, :MD_DEF,   :L_INDENT_4),
     # ----------------------------------------------------------------
-    # start of markdown def
-    SuperBlockPattern(:O_MD_DEF, :SOS,         :DEF),
-    SuperBlockPattern(:O_MD_DEF, :LINE_RETURN, :DEF),
-    # md def single
-    SuperBlockPattern(:MD_DEF,   :O_MD_DEF,    :LINE_RETURN, false),
-    SuperBlockPattern(:MD_DEF,   :O_MD_DEF,    :EOS,         false),
-    # md def block
-    SuperBlockPattern(:MD_DEF,   :MD_DEF,      :INDENT_1),
-    SuperBlockPattern(:MD_DEF,   :MD_DEF,      :INDENT_2),
-    SuperBlockPattern(:MD_DEF,   :MD_DEF,      :INDENT_4),
+    # indented blocks: starts with :L_INDENT_K then any number of matching
+    # indented lines
+    SuperBlockPattern(:INDENT_1, :L_INDENT_1, :L_INDENT_1),
+    SuperBlockPattern(:INDENT_1, :INDENT_1,   :L_INDENT_1),
+    SuperBlockPattern(:INDENT_2, :L_INDENT_2, :L_INDENT_2),
+    SuperBlockPattern(:INDENT_2, :INDENT_2,   :L_INDENT_2),
+    SuperBlockPattern(:INDENT_4, :L_INDENT_4, :L_INDENT_4),
+    SuperBlockPattern(:INDENT_4, :INDENT_4,   :L_INDENT_4),
 ]
 
 sblk = b -> find_superblocks(b, SUPER)
 
-tbs = sblk ∘ blk ∘ tok
+tbs = sblk ∘ tbl
 
-ptbs = s -> (filter!(e -> e.name ∉ [:LINE_RETURN, :SOS, :EOS], tbs(s)))
+ptbs  = s -> (filter!(e -> e.name ∉ [:LINE_RETURN, :SOS, :EOS], tbs(s)))
+ptbss = s -> sort(ptbs(s); by=from)
+
+# NOTE: at this point, a number of blocks are taken possibly multiple times!

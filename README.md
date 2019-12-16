@@ -4,7 +4,8 @@
 :-----------: | :------:
 [![Build Status](https://travis-ci.org/tlienart/SimpleParser.jl.svg?branch=master)](https://travis-ci.org/tlienart/SimpleParser.jl) | [![codecov.io](http://codecov.io/github/tlienart/SimpleParser.jl/coverage.svg?branch=master)](http://codecov.io/github/tlienart/SimpleParser?branch=master)
 
-This parser is a clean rewrite of [JuDoc](https://github.com/tlienart/JuDoc.jl)'s parser and will eventually be used by JuDoc but could also be used to build other parsers for simple markup languages like Common Markdown.
+This parser is a clean rewrite of [JuDoc](https://github.com/tlienart/JuDoc.jl)'s parser and will eventually be used by JuDoc but could (in principle) also be used to build parsers for other simple markup languages like Common Mark.
+In fact JuDoc currently relies on Julia's Markdown parser (in stdlib) which does not support Common Mark and so this could be worthwhile.
 
 ## Gist
 
@@ -13,7 +14,8 @@ Simple Parser is for people who don't want to bother themselves with theory and 
 The steps are:
 
 1. Find tokens (read the text once and build a list of anything that could mark something to do),
-1. Find blocks (convert single Tokens or groups of Tokens into something that must be processed later on as a block).
+1. Find blocks (convert single Tokens groups of Tokens into something that must be processed later on as a block).
+1. Assemble blocks (convert specific blocks into groups of blocks such as indented lines)
 
 ### Tokens
 

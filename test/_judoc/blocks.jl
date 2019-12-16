@@ -144,41 +144,109 @@ end
 end
 
 #
-# === super blocks
+# === line and super blocks
 #
 
-@testset "sblock:jd:ind" begin
-    b = "    hello" |> ptbs
-    @test b[1].name == :INDENT_4
-    @test b[1].ss == "    hello"
+@testset "sblock:jd:lbl" begin
+    b = "    hello" |> tbl
+    @test b[1].name == :L_INDENT_4
+    @test content(b[1]) == "hello"
 
-    b = "    hello\n    bye" |> ptbs
-    @test b[1].name == :INDENT_4
-    @test b[1].ss == "    hello\n    bye"
+    b = "    hello\n    bye" |> tbl
+    @test b[1].name == :L_INDENT_4
+    @test content(b[1]) == "hello"
+    @test b[2].name == :L_INDENT_4
+    @test content(b[2]) == "bye"
 
-    b = """
-        first
-        second
-    A
-      third
-      fourth
-    """ |> ptbs
-    @test b[1].name == :INDENT_4
-    @test b[2].name == :INDENT_2
-    @test b[1].ss == "    first\n    second\n"
-    @test b[2].ss == "\n  third\n  fourth\n"
+    b = "@def v=5\n@def h=7" |> tbl
+    @test b[1].name == :L_MD_DEF
+    @test content(b[1]) == " v=5"
+    @test b[2].name == :L_MD_DEF
+    @test content(b[2]) == " h=7"
+
+    c = """
+        ab
+        c
+    e
+      fg
+      hi
+    m
+    @def h = 7
+    @def g = "blah"
+    """ |> tbl
+    @test c[1].name == :EOS
+    @test content(c[2]) == "ab"
+    @test content(c[3]) == "c"
+    @test content(c[4]) == "fg"
+    @test content(c[5]) == "hi"
+    @test content(c[6]) == " h = 7"
+    @test content(c[7]) == " g = \"blah\""
 end
 
 @testset "sblock:jd:mdd" begin
     s = "@def v = 5" |> ptbs
     @test length(s) == 1
-    @test s[1].name == :MD_DEF
-    @test s[1].ss == "@def v = 5"
+    @test s[1].name == :L_MD_DEF
+    @test content(s[1]) == " v = 5"
+
     s = """
     A
     @def h = 3
     B
     """ |> ptbs
-    @test s[1].name == :MD_DEF
-    @test s[1].ss == "\n@def h = 3\n"
+    @test s[1].name == :L_MD_DEF
+    @test content(s[1]) == " h = 3"
+
+    s = """
+    A
+    @def h = [1 2;
+              3 4]
+    B
+    """ |> ptbss
+    @test s[1].name == :S_MD_DEF
+    e = strip(prod(l * "\n" for l in content(s[1])))
+    @test e == "h = [1 2;\n      3 4]"
+    @test Meta.parse(e) == :(h = [1 2; 3 4])
+end
+
+@testset "sblock:jd:mdd" begin
+    s = "@def v = 5" |> ptbs
+    @test length(s) == 1
+    @test s[1].name == :L_MD_DEF
+    @test content(s[1]) == " v = 5"
+
+    s = """
+    A
+    @def h = 3
+    B
+    """ |> ptbs
+    @test s[1].name == :L_MD_DEF
+    @test content(s[1]) == " h = 3"
+
+    s = """
+    A
+    @def h = [1 2;
+              3 4]
+    B
+    """ |> ptbss
+    @test s[1].name == :S_MD_DEF
+    e = strip(prod(l * "\n" for l in content(s[1])))
+    @test e == "h = [1 2;\n      3 4]"
+    @test Meta.parse(e) == :(h = [1 2; 3 4])
+end
+
+@testset "sblock:jd:ind" begin
+    s = """
+    A
+        B
+        C
+    D
+      E
+      F
+    G
+    """ |> ptbss
+    @test s[1].name == :INDENT_4
+    @test s[2].name == :INDENT_2
+    @test content(s[1]) == ["B", "C"]
+    @test content(s[2]) == ["E", "F"]
 end

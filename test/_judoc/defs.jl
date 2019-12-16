@@ -80,6 +80,7 @@ gr_iscode5 = (p, s) -> gr_iscode(p, s, 5)
 # definition exists and then an escaped char otherwise.
 
 TOKS = Dict{Char,Vector{TokenPattern}}(
+    # Other entries
     '<'  => [ TokenPattern(:O_COMMENT, "<!--") ],   # P: comment
     '-'  => [ TokenPattern(:C_COMMENT, "-->") ],    # .
     '~'  => [ TokenPattern(:ESCAPE, "~~~") ],       # P: escape
@@ -89,7 +90,6 @@ TOKS = Dict{Char,Vector{TokenPattern}}(
     ']'  => [ TokenPattern{1}(:C_BRACKET_2, ∅) ],   # .
     '{'  => [ TokenPattern{1}(:O_BRACKET_3, ∅) ],   # P: bracket_3
     '}'  => [ TokenPattern{1}(:C_BRACKET_3, ∅) ],   # .
-    '\n' => [ TokenPattern{1}(:LINE_RETURN, ∅) ],   # S
     '\t' => [ TokenPattern{1}(:TAB_1,       ∅) ],   # S
     ' '  => [
         TokenPattern(:TAB_4, "    "),               # S
@@ -115,37 +115,39 @@ TOKS = Dict{Char,Vector{TokenPattern}}(
         TokenPattern{0}(:COMMAND, (p, s) -> gr_isletter(p, s, extras=['_']))
         ],
     '@'  => [
-        TokenPattern(:MD_DEF, "@def", [' ']),
+        TokenPattern(:DEF, "@def", [' ']),          # S ~ SB
         TokenPattern(:C_DIV,    "@@", SPACE_CHARS), # P: div
         TokenPattern{0}(:O_DIV, gr_isdiv)           # .
         ],
     '#'  => [
-        TokenPattern(:H1, "#",      [' ']),         # S
-        TokenPattern(:H2, "##",     [' ']),         # S
-        TokenPattern(:H3, "###",    [' ']),         # S
-        TokenPattern(:H4, "####",   [' ']),         # S
-        TokenPattern(:H5, "#####",  [' ']),         # S
-        TokenPattern(:H6, "######", [' ']),         # S
+        TokenPattern(:H1, "#",      [' ']),         # S ~ SB
+        TokenPattern(:H2, "##",     [' ']),         # S ~ SB
+        TokenPattern(:H3, "###",    [' ']),         # S ~ SB
+        TokenPattern(:H4, "####",   [' ']),         # S ~ SB
+        TokenPattern(:H5, "#####",  [' ']),         # S ~ SB
+        TokenPattern(:H6, "######", [' ']),         # S ~ SB
         ],
     '&'  => [ TokenPattern{0}(:HTML_ENTITY, gr_isentity) ], # S
     '_'  => [
-        TokenPattern(:O_MATH_I, "_\$>_"),
-        TokenPattern(:C_MATH_I, "_\$<_")
+        TokenPattern(:O_MATH_I, "_\$>_"),           # P: math_i
+        TokenPattern(:C_MATH_I, "_\$<_")            # .
         ],
     '`'  => [
-        TokenPattern(:CODE_1, "`",  Char[], ['`']),       # code_1
-        TokenPattern(:CODE_2, "``", Char[], ['`']),       # code_2
-        TokenPattern(:CODE_3, "```",   SPACE_CHARS),      # code_3
-        TokenPattern(:CODE_5, "`````", SPACE_CHARS),      # code_5
-        TokenPattern{0}(:O_CODE_3, gr_iscode3),           # code_3l
-        TokenPattern{0}(:O_CODE_5, gr_iscode5)            # code_5l
+        TokenPattern(:CODE_1, "`",  Char[], ['`']), # P: code_1
+        TokenPattern(:CODE_2, "``", Char[], ['`']), # P: code_2
+        TokenPattern(:CODE_3, "```",   SPACE_CHARS),# P: code_3
+        TokenPattern(:CODE_5, "`````", SPACE_CHARS),# P: code_5
+        TokenPattern{0}(:O_CODE_3, gr_iscode3),     # P: code_3l
+        TokenPattern{0}(:O_CODE_5, gr_iscode5)      # P: code_5l
         ],
 ) # end of dict
 
 tok = s -> tokenize(s, TOKS)
 
-SINGLES = [:ESC_CHAR, :LINE_RETURN, :TAB_1, :TAB_2, :TAB_4,
-           :BACKSLASH, :BACKSLASH_2, :H1, :H2, :H3, :H4, :H5, :H6]
+SINGLES = [:SOS, :EOS,
+           :ESC_CHAR, :LINE_RETURN, :TAB_1, :TAB_2, :TAB_4,
+           :BACKSLASH, :BACKSLASH_2, :H1, :H2, :H3, :H4, :H5, :H6,
+           :DEF]
 
 blk1! = t -> find_singleblocks!(t, SINGLES)
 
@@ -168,6 +170,7 @@ PAIRS = [
     BlockPattern(:MATH_A,    :MATH_A,      :MATH_A,      false, true),
     BlockPattern(:MATH_B,    :MATH_B,      :MATH_B,      false, true),
     BlockPattern(:MATH_C,    :O_MATH_C,    :C_MATH_C,    false, true),
+    BlockPattern(:MATH_I,    :O_MATH_I,    :C_MATH_I,    false, true),
     BlockPattern(:MATH_ALIGN,:O_MATH_ALIGN,:C_MATH_ALIGN,false, true),
     BlockPattern(:MATH_EQ,   :O_MATH_EQ,   :C_MATH_EQ,   false, true),
     BlockPattern(:MATH_EQA,  :O_MATH_EQA,  :C_MATH_EQA,  false, true),
@@ -184,3 +187,42 @@ blkp! = t -> find_pairblocks!(t, PAIRS)
 blk = t -> (a = blk1!(t); vcat(a, blkp!(t)))
 
 tb = blk ∘ tok
+
+SUPER = [
+    # ----------------------------------------------------------------
+    # start of indented line
+    SuperBlockPattern(:O_INDENT_1, :SOS,         :TAB_1),
+    SuperBlockPattern(:O_INDENT_1, :LINE_RETURN, :TAB_1),
+    SuperBlockPattern(:O_INDENT_2, :SOS,         :TAB_2),
+    SuperBlockPattern(:O_INDENT_2, :LINE_RETURN, :TAB_2),
+    SuperBlockPattern(:O_INDENT_4, :SOS,         :TAB_4),
+    SuperBlockPattern(:O_INDENT_4, :LINE_RETURN, :TAB_4),
+    # indented line single
+    SuperBlockPattern(:INDENT_1, :O_INDENT_1, :LINE_RETURN, false),
+    SuperBlockPattern(:INDENT_1, :O_INDENT_1, :EOS,         false),
+    SuperBlockPattern(:INDENT_2, :O_INDENT_2, :LINE_RETURN, false),
+    SuperBlockPattern(:INDENT_2, :O_INDENT_2, :EOS,         false),
+    SuperBlockPattern(:INDENT_4, :O_INDENT_4, :LINE_RETURN, false),
+    SuperBlockPattern(:INDENT_4, :O_INDENT_4, :EOS,         false),
+    # block of indented lines
+    SuperBlockPattern(:INDENT_1, :INDENT_1, :INDENT_1),
+    SuperBlockPattern(:INDENT_2, :INDENT_2, :INDENT_2),
+    SuperBlockPattern(:INDENT_4, :INDENT_4, :INDENT_4),
+    # ----------------------------------------------------------------
+    # start of markdown def
+    SuperBlockPattern(:O_MD_DEF, :SOS,         :DEF),
+    SuperBlockPattern(:O_MD_DEF, :LINE_RETURN, :DEF),
+    # md def single
+    SuperBlockPattern(:MD_DEF,   :O_MD_DEF,    :LINE_RETURN, false),
+    SuperBlockPattern(:MD_DEF,   :O_MD_DEF,    :EOS,         false),
+    # md def block
+    SuperBlockPattern(:MD_DEF,   :MD_DEF,      :INDENT_1),
+    SuperBlockPattern(:MD_DEF,   :MD_DEF,      :INDENT_2),
+    SuperBlockPattern(:MD_DEF,   :MD_DEF,      :INDENT_4),
+]
+
+sblk = b -> find_superblocks(b, SUPER)
+
+tbs = sblk ∘ blk ∘ tok
+
+ptbs = s -> (filter!(e -> e.name ∉ [:LINE_RETURN, :SOS, :EOS], tbs(s)))

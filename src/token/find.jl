@@ -5,6 +5,9 @@ Find all tokens in `string` matching patterns given in `dict`.
 """
 function tokenize(s::AS, d::Dict{Char,Vector{TokenPattern}})::Vector{Token}
     isempty(s) && return Token[]
+    # force the '\n' entry to have the appropriate behaviour
+    d['\n'] = [TokenPattern{1}(:LINE_RETURN, r_empty)]
+    #
     eosidx = lastindex(s)
     pos    = 0
     tokens = Token[]
@@ -20,7 +23,7 @@ function tokenize(s::AS, d::Dict{Char,Vector{TokenPattern}})::Vector{Token}
         end
         next = next_char(s, pos)
     end
-    return [Token(:SOS, subs(s, 1)), tokens...]
+    return [Token(:SOS, subs(s, 1)), tokens..., Token(:EOS, subs(s, length(s)))]
 end
 
 """

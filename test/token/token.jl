@@ -10,11 +10,13 @@
 
     s1 = "a \\ b"
     tokens = tokenize(s1, pats)
-    @test length(tokens) == 2
+    @test length(tokens) == 3
     @test tokens[1].name == :SOS
     @test tokens[1].ss   == "a"
     @test tokens[2].name == :BACKSLASH
     @test tokens[2].ss == "\\"
+    @test tokens[3].name == :EOS
+    @test tokens[3].ss == "b"
 
     @test from(tokens[2]) == 3
     @test to(tokens[2]) == 3
@@ -23,26 +25,26 @@
 
     s2 = "a\\b"
     tokens = tokenize(s2, pats)
-    @test length(tokens) == 2
+    @test length(tokens) == 3
     @test tokens[1].name == :SOS
     @test tokens[2].name == :ESC_CHAR
     @test tokens[2].ss == "\\b"
 
     s3 = "a\\newcommand{} b"
     tokens = tokenize(s3, pats)
-    @test length(tokens) == 2
+    @test length(tokens) == 3
     @test tokens[2].name == :NEWCOMMAND
     @test tokens[2].ss == "\\newcommand"
 
     s4 = "a\\com b"
     tokens = tokenize(s4, pats)
-    @test length(tokens) == 2
+    @test length(tokens) == 3
     @test tokens[2].name == :COMMAND
     @test tokens[2].ss == "\\com"
 
     s5 = "a\\ \\b \\com \\newcommand{} c"
     tokens = tokenize(s5, pats)
-    @test length(tokens) == 5
+    @test length(tokens) == 6
     @test tokens[2].name == :BACKSLASH
     @test tokens[3].name == :ESC_CHAR
     @test tokens[4].name == :COMMAND

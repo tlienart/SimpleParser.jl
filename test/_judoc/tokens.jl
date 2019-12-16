@@ -2,7 +2,7 @@
     # comments
     s = raw"A<!--B-->C"
     tokens = tokenize(s, TOKS)
-    @test length(tokens) == 3
+    @test length(tokens) == 4
     @test tokens[2].name == :O_COMMENT
     @test tokens[3].name == :C_COMMENT
     @test tokens[2].ss == "<!--"
@@ -11,14 +11,14 @@
     # escape
     s = raw"A~~~B~~~C"
     tokens = tokenize(s, TOKS)
-    @test length(tokens) == 3
+    @test length(tokens) == 4
     @test tokens[2].name == tokens[3].name == :ESCAPE
     @test tokens[2].ss == tokens[3].ss == "~~~"
 
     # brackets
     s = raw"A(B)C[D]E{F}"
     tokens = tokenize(s, TOKS)
-    @test length(tokens) == 7
+    @test length(tokens) == 8
     @test tokens[2].name == :O_BRACKET_1
     @test tokens[3].name == :C_BRACKET_1
     @test tokens[4].name == :O_BRACKET_2
@@ -35,13 +35,13 @@
     # line return
     s = "A\nB"
     tokens = tokenize(s, TOKS)
-    @test length(tokens) == 2
+    @test length(tokens) == 3
     @test tokens[2].name == :LINE_RETURN
     @test tokens[2].ss == "\n"
 
     # Mixes
     t = "A\n~~~<!--B-->[C]D\\E" |> tok
-    @test length(t) == 8
+    @test length(t) == 9
     @test t[2].name == :LINE_RETURN
     @test t[3].name == :ESCAPE
     @test t[4].name == :O_COMMENT
@@ -50,8 +50,8 @@
     @test t[7].name == :C_BRACKET_2
     @test t[8].name == :COMMAND
     t = "A\n\n\n" |> tok
-    @test length(t) == 4
-    @test all(e->e.name == :LINE_RETURN, t[2:end])
+    @test length(t) == 5
+    @test all(e->e.name == :LINE_RETURN, t[2:end-1])
 end
 
 @testset "tok:jd:wsp" begin
@@ -65,21 +65,21 @@ end
 
 @testset "tok:jd:\\" begin
     t = raw"A \ B" |> tok
-    @test length(t) == 2
+    @test length(t) == 3
     @test t[2].name == :BACKSLASH
     @test t[2].ss == "\\"
 
     t = raw"A \\ B" |> tok
-    @test length(t) == 2
+    @test length(t) == 3
     @test t[2].name == :BACKSLASH_2
     @test t[2].ss == "\\\\"
 
     t = raw"A\B C" |> tok
-    @test length(t) == 2
+    @test length(t) == 3
     @test t[2].name == :COMMAND
 
     t = raw"A\BC" |> tok
-    @test length(t) == 2
+    @test length(t) == 3
     @test t[2].name == :COMMAND
 
     t = raw"A\*B" |> tok
@@ -97,7 +97,7 @@ end
     @test t[2].name == :ESC_CHAR
 
     t = raw"A\newcommand{\B}{C}" |> tok
-    @test length(t) == 7
+    @test length(t) == 8
     @test t[2].name == :NEWCOMMAND
     @test t[3].name == :O_BRACKET_3
     @test t[4].name == :COMMAND
@@ -130,7 +130,7 @@ end
 
 @testset "tok:jd:@" begin
     t = raw"@def B" |> tok
-    @test t[2].name == :MD_DEF
+    @test t[2].name == :DEF
 
     t = raw"@@name-2 B@@" |> tok
     @test t[2].name == :O_DIV
@@ -140,7 +140,7 @@ end
 
 @testset "tok:jd:#" begin
     t = raw"# ## ### #### ##### ###### " |> tok
-    @test length(t) == 7
+    @test length(t) == 8
     @test t[2].name == :H1
     @test t[3].name == :H2
     @test t[4].name == :H3
@@ -151,7 +151,7 @@ end
 
 @testset "tok:jd:&" begin
     t = raw"&nbsp; &#00; &#2" |> tok
-    @test length(t) == 3
+    @test length(t) == 4
     @test t[2].name == :HTML_ENTITY
     @test t[3].name == :HTML_ENTITY
     @test t[2].ss == "&nbsp;"
@@ -160,25 +160,25 @@ end
 
 @testset "tok:jd:\$" begin
     t = raw"A $B$ C $$D$$" |> tok
-    @test length(t) == 5
+    @test length(t) == 6
     @test t[2].name == t[3].name == :MATH_A
     @test t[4].name == t[5].name == :MATH_B
 end
 
 @testset "tok:jd:`" begin
     t = raw"A`B" |> tok
-    @test length(t) == 2
+    @test length(t) == 3
     @test t[2].name == :CODE_1
     t = raw"A`B`C``D``E" |> tok
-    @test length(t) == 5
+    @test length(t) == 6
     @test t[2].name == t[3].name == :CODE_1
     @test t[4].name == t[5].name == :CODE_2
     t = raw"A``` B``` C ````` D `````" |> tok
-    @test length(t) == 5
+    @test length(t) == 6
     @test t[2].name == t[3].name == :CODE_3
     @test t[4].name == t[5].name == :CODE_5
     t = raw"A```python B``` C `````julia D`````" |> tok
-    @test length(t) == 5
+    @test length(t) == 6
     @test t[2].name == :O_CODE_3
     @test t[2].ss == "```python"
     @test t[3].name == :CODE_3

@@ -1,5 +1,9 @@
 abstract type ParserException <: Exception end
 
+struct TokenizationError <: ParserException
+    msg::String
+end
+
 struct BlockError <: ParserException
     msg::String
     context::String

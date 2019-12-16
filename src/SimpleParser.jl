@@ -8,7 +8,7 @@ export EOS, SPACE_CHARS, NUM_CHARS
 export from, to, content
 export next_char, nchars, tokenize
 export r_empty, r_string, gr_isletter
-export find_singleblocks!, find_pairblocks!
+export find_singleblocks!, find_pairblocks!, find_superblocks
 
 const EOS         = '\0'
 const SPACE_CHARS = [' ', '\n', '\t', '\v', '\f', '\r', '\u85', '\ua0', EOS]

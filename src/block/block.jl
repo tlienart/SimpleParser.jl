@@ -23,7 +23,7 @@ Return the substring corresponding to the range wedged between the block
 opening token and its closing token.
 """
 function content(b::Block)::SS
-    b.ctok === nothing && return subs("")
+    isnothing(b.ctok) && return subs("")
     s = str(b) # does not allocate
     cfrom = nextind(s, to(b.otok))
     cto   = prevind(s, from(b.ctok))
@@ -42,9 +42,21 @@ struct SuperBlock <: AbstractBlock
     sub_blocks::Vector{Block}
 end
 
-function SuperBlock(n::Symbol, b1::Block, bs::Block...)::SuperBlock
+function SuperBlock(n::Symbol, b1::Block, b2::Block)::SuperBlock
     s = str(b1)
-    SuperBlock(n, subs(s, from(b1), to(bs[end])), [b1, bs...])
+    SuperBlock(n, subs(s, from(b1), to(b2)), [b1, b2])
+end
+function SuperBlock(n::Symbol, b1::Block, b2::SuperBlock)::SuperBlock
+    s = str(b1)
+    SuperBlock(n, subs(s, from(b1), to(b2)), [b1, b2.sub_blocks...])
+end
+function SuperBlock(n::Symbol, b1::SuperBlock, b2::Block)::SuperBlock
+    s = str(b1)
+    SuperBlock(n, subs(s, from(b1), to(b2)), [b1.sub_blocks..., b2])
+end
+function SuperBlock(n::Symbol, b1::SuperBlock, b2::SuperBlock)::SuperBlock
+    s = str(b1)
+    SuperBlock(n, subs(s, from(b1), to(b2)), [b1.sub_blocks..., b2.sub_blocks...])
 end
 
 Base.getindex(b::SuperBlock, i::Int) = b.sub_blocks[i]
@@ -84,12 +96,34 @@ Pair of two blocks that will go in  [`SuperBlock`](@ref).
 
 ## Fields
 
-* `name`:   Symbol to identify the super block.
-* `oname`:  Symbol to identify the first part of a super block pattern.
-* `cname`:  Symbol to identify the second part of a super block pattern.
+* `name`:     Symbol to identify the super block.
+* `oname`:    Symbol to identify the first part of a super block pattern.
+* `cname`:    Symbol to identify the second part of a super block pattern.
+* `adjacent`: Whether the first and second part must be adjacent (touching).
 """
 struct SuperBlockPattern
     name::Symbol
     oname::Symbol
     cname::Symbol
+    adjacent::Bool
+end
+SuperBlockPattern(n, o, c) = SuperBlockPattern(n, o, c, true)
+
+"""
+combine(b1, b2, patterns)
+
+Given two adjacent block `b1` and `b2`, try to join them in a superblock that
+would match a pattern in `patterns`.
+"""
+function combine(b1::AbstractBlock, b2::AbstractBlock,
+                 pats::Vector{SuperBlockPattern})::Union{Nothing,SuperBlock}
+    for pat in pats
+        pat.oname == b1.name || continue
+        b2.name == pat.cname || continue
+        if pat.adjacent
+            (from(b2) - to(b1)) ∈ [0, 1] || continue
+        end
+        return SuperBlock(pat.name, b1, b2)
+    end
+    return nothing
 end

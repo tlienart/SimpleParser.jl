@@ -10,7 +10,7 @@ function find_singleblocks!(tokens::Vector{Token}, singles::Vector{Symbol}
     blocks   = Vector{Block}()
     inactive = zeros(Bool, length(tokens))
     for (i, t) in enumerate(tokens)
-        t.name == :SOS || t.name ∈ singles || continue
+        t.name ∈ singles || continue
         push!(blocks, Block(t))
         inactive[i] = true
     end
@@ -77,6 +77,31 @@ end
 # aggregate super blocks
 #
 # -- also need use <= for from bc e.g. START could overlap
-function find_superblocks(blocks::Vector{Block},
-                          sbp::Vector{SuperBlockPattern})::Vector{SuperBlock}
+function find_superblocks(blocks::Vector{<:AbstractBlock},
+                          sbp::Vector{SuperBlockPattern}
+                          )::Vector{Union{Block,SuperBlock}}
+    sb = Vector{Union{Block,SuperBlock}}()
+    length(blocks) < 2 && return blocks
+    cur = blocks[1]
+    nextidx = 2
+    while nextidx <= length(blocks)
+        next = blocks[nextidx]
+        cand = combine(cur, next, sbp)
+        if isnothing(cand)
+            push!(sb, cur)
+            if cur isa SuperBlock && cur.sub_blocks[end].name == :LINE_RETURN
+                cur = cur.sub_blocks[end]
+                continue # no update for next
+            else
+                cur = blocks[nextidx]
+            end
+        else
+            cur = cand
+        end
+        nextidx += 1
+    end
+    push!(sb, cur)
+    # second pass to aggregate super blocks
+    eltype(blocks) == Block && return find_superblocks(sb, sbp)
+    return sb
 end

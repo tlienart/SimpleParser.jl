@@ -124,7 +124,11 @@ end
     t = "<!--" |> tok
     mess = "Context:\n\t<!-- (near line 1)\n	^---\n"
     @test SimpleParser.context(t[1]) == mess
-    @test_throws SimpleParser.BlockError("Found opening token O_COMMENT but not a matching closing token (expected one of [:C_COMMENT])", mess) "<!--" |> tb
+    if VERSION >= v"1.3.1"
+        @test_throws SimpleParser.BlockError("Found opening token O_COMMENT but not a matching closing token (expected one of [:C_COMMENT])", mess) "<!--" |> tb
+    else
+        @test_throws SimpleParser.BlockError("Found opening token O_COMMENT but not a matching closing token (expected one of Symbol[:C_COMMENT])", mess) "<!--" |> tb
+    end
 end
 
 @testset "block:jd:div" begin

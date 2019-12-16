@@ -116,18 +116,18 @@ TOKS = Dict{Char,Vector{TokenPattern}}(
         ],
     '@'  => [
         TokenPattern(:MD_DEF, "@def", [' ']),
-        TokenPattern(:C_DIV,    "@@", SPACE_CHARS),       # P: div
-        TokenPattern{0}(:O_DIV, gr_isdiv)
+        TokenPattern(:C_DIV,    "@@", SPACE_CHARS), # P: div
+        TokenPattern{0}(:O_DIV, gr_isdiv)           # .
         ],
     '#'  => [
-        TokenPattern(:H1, "#",      [' ']),
-        TokenPattern(:H2, "##",     [' ']),
-        TokenPattern(:H3, "###",    [' ']),
-        TokenPattern(:H4, "####",   [' ']),
-        TokenPattern(:H5, "#####",  [' ']),
-        TokenPattern(:H6, "######", [' ']),
+        TokenPattern(:H1, "#",      [' ']),         # S
+        TokenPattern(:H2, "##",     [' ']),         # S
+        TokenPattern(:H3, "###",    [' ']),         # S
+        TokenPattern(:H4, "####",   [' ']),         # S
+        TokenPattern(:H5, "#####",  [' ']),         # S
+        TokenPattern(:H6, "######", [' ']),         # S
         ],
-    '&'  => [ TokenPattern{0}(:HTML_ENTITY, gr_isentity) ],
+    '&'  => [ TokenPattern{0}(:HTML_ENTITY, gr_isentity) ], # S
     '_'  => [
         TokenPattern(:O_MATH_I, "_\$>_"),
         TokenPattern(:C_MATH_I, "_\$<_")
@@ -145,7 +145,7 @@ TOKS = Dict{Char,Vector{TokenPattern}}(
 tok = s -> tokenize(s, TOKS)
 
 SINGLES = [:ESC_CHAR, :LINE_RETURN, :TAB_1, :TAB_2, :TAB_4,
-           :BACKSLASH, :BACKSLASH_2]
+           :BACKSLASH, :BACKSLASH_2, :H1, :H2, :H3, :H4, :H5, :H6]
 
 blk1! = t -> find_singleblocks!(t, SINGLES)
 

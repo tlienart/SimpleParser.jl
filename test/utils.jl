@@ -25,4 +25,8 @@ end
 
     @test S.str(ss) === s
     @test S.str(s) === s
+
+    ss = S.subs(s, 5:7)
+    @test from(ss) == 5
+    @test to(ss) == 7
 end

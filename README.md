@@ -7,6 +7,9 @@
 This parser is a clean rewrite of [JuDoc](https://github.com/tlienart/JuDoc.jl)'s parser and will eventually replace it but could (in principle) also be used to build parsers for other simple markup languages like Common Mark.
 In fact JuDoc currently relies on Julia's Markdown parser (in stdlib) which does not support Common Mark and so this could be worthwhile.
 
+This package is currently **not** registered and rather allows to work and test the parser independently of the rest of the machinery.
+Feel free to fork it though.
+
 ## Gist
 
 Simple Parser is for people who don't want to bother themselves with grammar etc and just want to assume that their parser is doing something similar to what a human would do when reading something like Markdown and does it with some efficiency.

@@ -1,19 +1,19 @@
-@testset "Pattern" begin
-    p1 = Pattern{1}(:BACKSLASH, r_empty, [' '])
+@testset "TokenPattern" begin
+    p1 = TokenPattern{1}(:BACKSLASH, r_empty, [' '])
     @test p1.name == :BACKSLASH
     @test p1.rule === r_empty
     @test p1.rule('a')
     @test p1.followed_by == [' ']
     @test p1.not_followed_by == Char[]
 
-    p2 = Pattern(:NEWCOMMAND, raw"\newcommand", ['{'])
+    p2 = TokenPattern(:NEWCOMMAND, raw"\newcommand", ['{'])
     len = length("\\newcommand")
-    @test typeof(p2) == Pattern{len}
+    @test typeof(p2) == TokenPattern{len}
     @test p2.rule === r_string(raw"\newcommand")
     @test p2.rule(raw"\newcommand")
     @test p2.followed_by == ['{']
 
-    p3 = Pattern{0}(:COMMAND, (p, s) -> gr_isletter(p, s, extras=['_']))
+    p3 = TokenPattern{0}(:COMMAND, (p, s) -> gr_isletter(p, s, extras=['_']))
     @test p3.rule(raw"\comm_a", 1) == 6
     @test p3.rule(raw"\_b", 1) == 0
 end

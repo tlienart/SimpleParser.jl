@@ -1,9 +1,13 @@
-struct Token
-    name::Symbol
-    ss::SubString
-end
+"""
+tokenize(string, dict)
 
-function tokenize(s::AbstractString, d::Dict{Char,Vector{Pattern}})
+Find all tokens in `string` matching patterns given in `dict`.
+"""
+function tokenize(s::AS, d::Dict{Char,Vector{TokenPattern}})::Vector{Token}
+    isempty(s) && return Token[]
+    # force the '\n' entry to have the appropriate behaviour
+    d['\n'] = [TokenPattern{1}(:LINE_RETURN, r_empty)]
+    #
     eosidx = lastindex(s)
     pos    = 0
     tokens = Token[]
@@ -19,14 +23,18 @@ function tokenize(s::AbstractString, d::Dict{Char,Vector{Pattern}})
         end
         next = next_char(s, pos)
     end
-    return tokens
+    return [Token(:SOS, subs(s, 1)), tokens..., Token(:EOS, subs(s, length(s)))]
 end
 
-function check_patterns!(tokens::Vector{Token}, pats::Vector{Pattern},
-                         s::AS, pos::Int, eosidx::Int)
+"""
+check_patterns!(tokens, pattterns, string, position, eosidx)
+
+Helper function for [`tokenize`](@ref) to try to match specific patterns.
+"""
+function check_patterns!(tokens::Vector{Token}, pats::Vector{TokenPattern},
+                         s::AS, pos::Int, eosidx::Int)::Int
     # check against pattern, in order, first match wins
     for pat in pats
-
         n = nchars(pat)
         # fixed length pattern
         if n > 0
